@@ -1,0 +1,932 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TechFlow Task Manager</title>
+  <style>
+    /* ── Reset & Variáveis ─────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --blue:      #1a73e8;
+      --blue-dark: #0d47a1;
+      --blue-lt:   #e8f0fe;
+      --green:     #34a853;
+      --green-lt:  #e6f4ea;
+      --orange:    #fb8c00;
+      --orange-lt: #fff3e0;
+      --red:       #e53935;
+      --red-lt:    #fce8e6;
+      --gray:      #5f6368;
+      --gray-lt:   #f1f3f4;
+      --white:     #ffffff;
+      --shadow-sm: 0 1px 4px rgba(0,0,0,.12);
+      --shadow-md: 0 4px 16px rgba(0,0,0,.14);
+      --radius:    12px;
+      --transition: .18s ease;
+    }
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: #f0f4f8;
+      color: #202124;
+      min-height: 100vh;
+    }
+
+    /* ── Header ─────────────────────────────────────────────── */
+    header {
+      background: linear-gradient(135deg, var(--blue), var(--blue-dark));
+      color: var(--white);
+      padding: 0 32px;
+      height: 64px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: 0 2px 8px rgba(0,0,0,.2);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .header-brand { display: flex; align-items: center; gap: 12px; }
+    .header-brand svg { width: 32px; height: 32px; }
+    .header-brand h1 { font-size: 1.25rem; font-weight: 700; letter-spacing: -.3px; }
+    .header-brand span { font-size: .75rem; opacity: .75; font-weight: 400; margin-top: 1px; display: block; }
+    .header-actions { display: flex; gap: 10px; }
+    #btn-add-task {
+      background: rgba(255,255,255,.18);
+      border: 1.5px solid rgba(255,255,255,.45);
+      color: var(--white);
+      padding: 8px 18px;
+      border-radius: 24px;
+      font-size: .875rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: var(--transition);
+    }
+    #btn-add-task:hover { background: rgba(255,255,255,.28); }
+
+    /* ── Stats Bar ───────────────────────────────────────────── */
+    .stats-bar {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 16px;
+      padding: 24px 32px 8px;
+    }
+    .stat-card {
+      background: var(--white);
+      border-radius: var(--radius);
+      padding: 16px 20px;
+      box-shadow: var(--shadow-sm);
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      transition: var(--transition);
+    }
+    .stat-card:hover { box-shadow: var(--shadow-md); transform: translateY(-1px); }
+    .stat-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.3rem;
+      flex-shrink: 0;
+    }
+    .stat-icon.blue   { background: var(--blue-lt);   color: var(--blue); }
+    .stat-icon.orange { background: var(--orange-lt); color: var(--orange); }
+    .stat-icon.green  { background: var(--green-lt);  color: var(--green); }
+    .stat-icon.red    { background: var(--red-lt);    color: var(--red); }
+    .stat-icon.gray   { background: var(--gray-lt);   color: var(--gray); }
+    .stat-info { flex: 1; min-width: 0; }
+    .stat-value { font-size: 1.75rem; font-weight: 700; line-height: 1; }
+    .stat-label { font-size: .72rem; color: var(--gray); margin-top: 2px; text-transform: uppercase; letter-spacing: .5px; }
+
+    /* ── Toolbar ─────────────────────────────────────────────── */
+    .toolbar {
+      padding: 12px 32px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .search-box {
+      flex: 1;
+      max-width: 360px;
+      position: relative;
+    }
+    .search-box input {
+      width: 100%;
+      padding: 9px 14px 9px 38px;
+      border: 1.5px solid #dadce0;
+      border-radius: 24px;
+      font-size: .875rem;
+      outline: none;
+      background: var(--white);
+      transition: var(--transition);
+    }
+    .search-box input:focus { border-color: var(--blue); box-shadow: 0 0 0 3px rgba(26,115,232,.15); }
+    .search-icon {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--gray);
+      font-size: 1rem;
+    }
+    .filter-group { display: flex; gap: 8px; }
+    .filter-btn {
+      padding: 7px 14px;
+      border: 1.5px solid #dadce0;
+      border-radius: 20px;
+      background: var(--white);
+      font-size: .8rem;
+      cursor: pointer;
+      transition: var(--transition);
+      color: var(--gray);
+      font-weight: 500;
+    }
+    .filter-btn:hover, .filter-btn.active {
+      border-color: var(--blue);
+      color: var(--blue);
+      background: var(--blue-lt);
+    }
+
+    /* ── Kanban Board ────────────────────────────────────────── */
+    .kanban-board {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+      padding: 8px 32px 32px;
+    }
+    .kanban-col {
+      background: var(--white);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-sm);
+      display: flex;
+      flex-direction: column;
+      min-height: 400px;
+    }
+    .col-header {
+      padding: 16px 18px 14px;
+      border-radius: var(--radius) var(--radius) 0 0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1.5px solid #f1f3f4;
+    }
+    .col-header-left { display: flex; align-items: center; gap: 10px; }
+    .col-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+    }
+    .col-title { font-size: .9rem; font-weight: 700; }
+    .col-count {
+      background: var(--gray-lt);
+      color: var(--gray);
+      border-radius: 12px;
+      padding: 2px 9px;
+      font-size: .75rem;
+      font-weight: 600;
+    }
+    /* Column color accents */
+    .col-todo   .col-header { border-top: 3px solid #9e9e9e; }
+    .col-doing  .col-header { border-top: 3px solid var(--orange); }
+    .col-done   .col-header { border-top: 3px solid var(--green); }
+    .col-todo  .col-dot  { background: #9e9e9e; }
+    .col-doing .col-dot  { background: var(--orange); }
+    .col-done  .col-dot  { background: var(--green); }
+
+    .col-body {
+      flex: 1;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      overflow-y: auto;
+    }
+    .empty-col {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: #bdc1c6;
+      gap: 8px;
+      padding: 24px;
+      text-align: center;
+    }
+    .empty-col svg { opacity: .4; }
+    .empty-col p { font-size: .8rem; }
+
+    /* ── Task Cards ──────────────────────────────────────────── */
+    .task-card {
+      background: #fff;
+      border-radius: 10px;
+      padding: 14px 14px 12px;
+      border: 1.5px solid #e8eaed;
+      cursor: pointer;
+      transition: var(--transition);
+      position: relative;
+    }
+    .task-card:hover { border-color: var(--blue); box-shadow: var(--shadow-md); transform: translateY(-2px); }
+    .card-priority-bar {
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 4px;
+      border-radius: 10px 0 0 10px;
+    }
+    .priority-high  .card-priority-bar { background: var(--red); }
+    .priority-medium .card-priority-bar { background: var(--orange); }
+    .priority-low   .card-priority-bar { background: var(--green); }
+    .card-content { padding-left: 8px; }
+    .card-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; margin-bottom: 6px; }
+    .card-title { font-size: .875rem; font-weight: 600; line-height: 1.4; flex: 1; }
+    .card-menu { display: flex; gap: 4px; opacity: 0; transition: var(--transition); }
+    .task-card:hover .card-menu { opacity: 1; }
+    .card-action-btn {
+      width: 26px;
+      height: 26px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: .85rem;
+      transition: var(--transition);
+      background: transparent;
+      color: var(--gray);
+    }
+    .card-action-btn:hover { background: var(--gray-lt); }
+    .card-action-btn.edit:hover  { background: var(--blue-lt);  color: var(--blue); }
+    .card-action-btn.trash:hover { background: var(--red-lt);   color: var(--red); }
+    .card-desc { font-size: .78rem; color: var(--gray); line-height: 1.5; margin-bottom: 10px; }
+    .card-footer { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 6px; }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 3px 9px;
+      border-radius: 12px;
+      font-size: .7rem;
+      font-weight: 600;
+    }
+    .badge-high   { background: var(--red-lt);    color: var(--red); }
+    .badge-medium { background: var(--orange-lt); color: var(--orange); }
+    .badge-low    { background: var(--green-lt);  color: var(--green); }
+    .card-assignee { font-size: .72rem; color: var(--gray); display: flex; align-items: center; gap: 4px; }
+    .avatar {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: var(--blue);
+      color: var(--white);
+      font-size: .65rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .card-quick-status {
+      display: flex;
+      gap: 4px;
+      margin-top: 8px;
+    }
+    .qs-btn {
+      flex: 1;
+      padding: 4px 0;
+      border: 1.5px solid #e8eaed;
+      border-radius: 6px;
+      background: transparent;
+      font-size: .68rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: var(--transition);
+      color: var(--gray);
+    }
+    .qs-btn:hover { border-color: var(--blue); color: var(--blue); background: var(--blue-lt); }
+    .qs-btn.current { background: var(--blue); color: white; border-color: var(--blue); }
+
+    /* ── Modal ───────────────────────────────────────────────── */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(32,33,36,.5);
+      backdrop-filter: blur(2px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 200;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .2s;
+    }
+    .modal-overlay.open { opacity: 1; pointer-events: all; }
+    .modal {
+      background: var(--white);
+      border-radius: 16px;
+      width: 100%;
+      max-width: 520px;
+      padding: 32px;
+      box-shadow: 0 8px 40px rgba(0,0,0,.22);
+      transform: translateY(16px) scale(.97);
+      transition: transform .22s ease;
+    }
+    .modal-overlay.open .modal { transform: translateY(0) scale(1); }
+    .modal-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; }
+    .modal-title { font-size: 1.1rem; font-weight: 700; }
+    .modal-close {
+      width: 32px; height: 32px;
+      border: none; border-radius: 8px; background: var(--gray-lt);
+      cursor: pointer; font-size: 1rem; color: var(--gray);
+      display: flex; align-items: center; justify-content: center;
+      transition: var(--transition);
+    }
+    .modal-close:hover { background: var(--red-lt); color: var(--red); }
+    .form-group { margin-bottom: 18px; }
+    .form-group label { display: block; font-size: .8rem; font-weight: 600; margin-bottom: 6px; color: #3c4043; }
+    .form-group input,
+    .form-group textarea,
+    .form-group select {
+      width: 100%;
+      padding: 10px 14px;
+      border: 1.5px solid #dadce0;
+      border-radius: 8px;
+      font-size: .875rem;
+      outline: none;
+      font-family: inherit;
+      transition: var(--transition);
+      background: var(--white);
+    }
+    .form-group input:focus,
+    .form-group textarea:focus,
+    .form-group select:focus {
+      border-color: var(--blue);
+      box-shadow: 0 0 0 3px rgba(26,115,232,.15);
+    }
+    .form-group textarea { min-height: 90px; resize: vertical; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .form-error { color: var(--red); font-size: .78rem; margin-top: 4px; display: none; }
+    .form-error.show { display: block; }
+    .modal-footer { display: flex; gap: 10px; justify-content: flex-end; margin-top: 24px; }
+    .btn-cancel {
+      padding: 10px 22px; border: 1.5px solid #dadce0; background: var(--white);
+      border-radius: 8px; font-size: .875rem; cursor: pointer; transition: var(--transition); font-weight: 500;
+    }
+    .btn-cancel:hover { background: var(--gray-lt); }
+    .btn-primary {
+      padding: 10px 22px; background: var(--blue); color: white;
+      border: none; border-radius: 8px; font-size: .875rem; font-weight: 600;
+      cursor: pointer; transition: var(--transition); display: flex; align-items: center; gap: 6px;
+    }
+    .btn-primary:hover { background: var(--blue-dark); }
+    .btn-primary:disabled { opacity: .6; cursor: not-allowed; }
+
+    /* ── Confirm Dialog ──────────────────────────────────────── */
+    .confirm-overlay {
+      position: fixed; inset: 0;
+      background: rgba(32,33,36,.5);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 300; opacity: 0; pointer-events: none; transition: opacity .2s;
+    }
+    .confirm-overlay.open { opacity: 1; pointer-events: all; }
+    .confirm-box {
+      background: var(--white); border-radius: 14px; padding: 28px;
+      max-width: 380px; width: 100%; box-shadow: var(--shadow-md);
+      transform: scale(.95); transition: transform .2s;
+    }
+    .confirm-overlay.open .confirm-box { transform: scale(1); }
+    .confirm-icon { font-size: 2.5rem; text-align: center; margin-bottom: 12px; }
+    .confirm-title { font-size: 1rem; font-weight: 700; text-align: center; margin-bottom: 8px; }
+    .confirm-msg { font-size: .85rem; color: var(--gray); text-align: center; margin-bottom: 22px; }
+    .confirm-actions { display: flex; gap: 10px; }
+    .btn-danger {
+      flex: 1; padding: 10px; background: var(--red); color: white;
+      border: none; border-radius: 8px; font-weight: 600; cursor: pointer;
+      transition: var(--transition);
+    }
+    .btn-danger:hover { background: #c62828; }
+
+    /* ── Toast ───────────────────────────────────────────────── */
+    #toast-container {
+      position: fixed; bottom: 24px; right: 24px;
+      display: flex; flex-direction: column-reverse; gap: 10px;
+      z-index: 400;
+    }
+    .toast {
+      background: #202124; color: white;
+      padding: 12px 20px; border-radius: 10px;
+      font-size: .875rem; box-shadow: var(--shadow-md);
+      display: flex; align-items: center; gap: 10px;
+      animation: slideIn .25s ease;
+      max-width: 320px;
+    }
+    .toast.success { background: #1e7e34; }
+    .toast.error   { background: #c62828; }
+    @keyframes slideIn {
+      from { transform: translateX(100%); opacity: 0; }
+      to   { transform: translateX(0);   opacity: 1; }
+    }
+
+    /* ── Loading ─────────────────────────────────────────────── */
+    .loading-spinner {
+      display: inline-block; width: 18px; height: 18px;
+      border: 2px solid rgba(255,255,255,.3);
+      border-top-color: white; border-radius: 50%;
+      animation: spin .7s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── Responsive ──────────────────────────────────────────── */
+    @media (max-width: 900px) {
+      .stats-bar { grid-template-columns: repeat(3, 1fr); }
+      .kanban-board { grid-template-columns: 1fr; }
+      .stats-bar, .toolbar, .kanban-board { padding-left: 16px; padding-right: 16px; }
+    }
+    @media (max-width: 600px) {
+      .stats-bar { grid-template-columns: 1fr 1fr; }
+      header { padding: 0 16px; }
+      .header-brand h1 { font-size: 1rem; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── Header ──────────────────────────────────────────────── -->
+<header>
+  <div class="header-brand">
+    <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <rect width="32" height="32" rx="8" fill="rgba(255,255,255,0.2)"/>
+      <path d="M8 12h16M8 16h10M8 20h13" stroke="white" stroke-width="2.2" stroke-linecap="round"/>
+      <circle cx="24" cy="20" r="4" fill="#34a853"/>
+      <path d="M22.5 20l1 1 2-2" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+    <div>
+      <h1>TechFlow Task Manager</h1>
+      <span>Sistema de Gerenciamento de Tarefas Ágeis</span>
+    </div>
+  </div>
+  <div class="header-actions">
+    <button id="btn-add-task" onclick="openModal()">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+        <path d="M8 2a.75.75 0 01.75.75v4.5h4.5a.75.75 0 010 1.5h-4.5v4.5a.75.75 0 01-1.5 0v-4.5h-4.5a.75.75 0 010-1.5h4.5v-4.5A.75.75 0 018 2z"/>
+      </svg>
+      Nova Tarefa
+    </button>
+  </div>
+</header>
+
+<!-- ── Stats Bar ───────────────────────────────────────────── -->
+<div class="stats-bar">
+  <div class="stat-card">
+    <div class="stat-icon blue">📋</div>
+    <div class="stat-info">
+      <div class="stat-value" id="stat-total">0</div>
+      <div class="stat-label">Total de Tarefas</div>
+    </div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon gray">📝</div>
+    <div class="stat-info">
+      <div class="stat-value" id="stat-todo">0</div>
+      <div class="stat-label">A Fazer</div>
+    </div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon orange">⚡</div>
+    <div class="stat-info">
+      <div class="stat-value" id="stat-inprogress">0</div>
+      <div class="stat-label">Em Progresso</div>
+    </div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon green">✅</div>
+    <div class="stat-info">
+      <div class="stat-value" id="stat-done">0</div>
+      <div class="stat-label">Concluídas</div>
+    </div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon red">🔥</div>
+    <div class="stat-info">
+      <div class="stat-value" id="stat-rate">0%</div>
+      <div class="stat-label">Conclusão</div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Toolbar ─────────────────────────────────────────────── -->
+<div class="toolbar">
+  <div class="search-box">
+    <span class="search-icon">🔍</span>
+    <input type="text" id="search-input" placeholder="Buscar tarefas..." oninput="onSearch()" />
+  </div>
+  <div class="filter-group">
+    <button class="filter-btn active" data-filter="all"     onclick="setFilter('all', this)">Todas</button>
+    <button class="filter-btn"        data-filter="high"    onclick="setFilter('high', this)">🔥 Alta</button>
+    <button class="filter-btn"        data-filter="medium"  onclick="setFilter('medium', this)">🟡 Média</button>
+    <button class="filter-btn"        data-filter="low"     onclick="setFilter('low', this)">🟢 Baixa</button>
+  </div>
+</div>
+
+<!-- ── Kanban Board ────────────────────────────────────────── -->
+<div class="kanban-board">
+  <!-- A Fazer -->
+  <div class="kanban-col col-todo">
+    <div class="col-header">
+      <div class="col-header-left">
+        <span class="col-dot"></span>
+        <span class="col-title">A Fazer</span>
+      </div>
+      <span class="col-count" id="count-todo">0</span>
+    </div>
+    <div class="col-body" id="col-todo"></div>
+  </div>
+
+  <!-- Em Progresso -->
+  <div class="kanban-col col-doing">
+    <div class="col-header">
+      <div class="col-header-left">
+        <span class="col-dot"></span>
+        <span class="col-title">Em Progresso</span>
+      </div>
+      <span class="col-count" id="count-inprogress">0</span>
+    </div>
+    <div class="col-body" id="col-inprogress"></div>
+  </div>
+
+  <!-- Concluído -->
+  <div class="kanban-col col-done">
+    <div class="col-header">
+      <div class="col-header-left">
+        <span class="col-dot"></span>
+        <span class="col-title">Concluído</span>
+      </div>
+      <span class="col-count" id="count-done">0</span>
+    </div>
+    <div class="col-body" id="col-done"></div>
+  </div>
+</div>
+
+<!-- ── Modal Criar / Editar ───────────────────────────────── -->
+<div class="modal-overlay" id="modal-overlay" onclick="closeModalIfOutside(event)">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+    <div class="modal-header">
+      <h2 class="modal-title" id="modal-title">Nova Tarefa</h2>
+      <button class="modal-close" onclick="closeModal()" title="Fechar">✕</button>
+    </div>
+
+    <div class="form-group">
+      <label for="f-title">Título <span style="color:var(--red)">*</span></label>
+      <input type="text" id="f-title" placeholder="Descreva a tarefa brevemente..." maxlength="200" />
+      <div class="form-error" id="err-title"></div>
+    </div>
+
+    <div class="form-group">
+      <label for="f-desc">Descrição</label>
+      <textarea id="f-desc" placeholder="Detalhes adicionais sobre a tarefa..."></textarea>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label for="f-priority">Prioridade</label>
+        <select id="f-priority">
+          <option value="low">🟢 Baixa</option>
+          <option value="medium" selected>🟡 Média</option>
+          <option value="high">🔴 Alta</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="f-status">Status</label>
+        <select id="f-status">
+          <option value="todo">📝 A Fazer</option>
+          <option value="in_progress">⚡ Em Progresso</option>
+          <option value="done">✅ Concluído</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label for="f-assignee">Responsável</label>
+      <input type="text" id="f-assignee" placeholder="Nome do responsável..." maxlength="100" />
+    </div>
+
+    <div class="form-error" id="err-global" style="margin-bottom:8px"></div>
+
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeModal()">Cancelar</button>
+      <button class="btn-primary" id="btn-save" onclick="saveTask()">
+        <span id="btn-save-label">Criar Tarefa</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Confirm Delete ─────────────────────────────────────── -->
+<div class="confirm-overlay" id="confirm-overlay">
+  <div class="confirm-box">
+    <div class="confirm-icon">🗑️</div>
+    <div class="confirm-title">Excluir Tarefa</div>
+    <div class="confirm-msg">Tem certeza que deseja excluir esta tarefa? Esta ação não pode ser desfeita.</div>
+    <div class="confirm-actions">
+      <button class="btn-cancel" style="flex:1" onclick="closeConfirm()">Cancelar</button>
+      <button class="btn-danger" id="btn-confirm-delete" onclick="confirmDelete()">Excluir</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Toast Container ───────────────────────────────────── -->
+<div id="toast-container"></div>
+
+<!-- ── JavaScript ────────────────────────────────────────── -->
+<script>
+  // ── State ──────────────────────────────────────────────────
+  let tasks        = [];
+  let editingId    = null;
+  let deletingId   = null;
+  let searchTimer  = null;
+  let activeFilter = 'all';
+
+  // ── Init ───────────────────────────────────────────────────
+  document.addEventListener('DOMContentLoaded', () => {
+    loadData();
+    document.getElementById('f-title').addEventListener('keydown', e => {
+      if (e.key === 'Enter') saveTask();
+    });
+  });
+
+  async function loadData() {
+    await Promise.all([loadStats(), loadTasks()]);
+  }
+
+  // ── API helpers ────────────────────────────────────────────
+  async function api(method, path, body) {
+    const opts = { method, headers: { 'Content-Type': 'application/json' } };
+    if (body) opts.body = JSON.stringify(body);
+    const res = await fetch(path, opts);
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Erro desconhecido');
+    return data;
+  }
+
+  // ── Stats ──────────────────────────────────────────────────
+  async function loadStats() {
+    try {
+      const s = await api('GET', '/api/stats');
+      document.getElementById('stat-total').textContent      = s.total;
+      document.getElementById('stat-todo').textContent       = s.todo;
+      document.getElementById('stat-inprogress').textContent = s.in_progress;
+      document.getElementById('stat-done').textContent       = s.done;
+      document.getElementById('stat-rate').textContent       = s.completion_rate + '%';
+    } catch { /* silencioso */ }
+  }
+
+  // ── Tasks List ─────────────────────────────────────────────
+  async function loadTasks() {
+    try {
+      let url = '/api/tasks?';
+      if (activeFilter !== 'all') url += `priority=${activeFilter}&`;
+      const search = document.getElementById('search-input').value.trim();
+      if (search) url += `search=${encodeURIComponent(search)}&`;
+      tasks = await api('GET', url);
+      renderBoard();
+    } catch {
+      showToast('Erro ao carregar tarefas', 'error');
+    }
+  }
+
+  // ── Board Render ───────────────────────────────────────────
+  function renderBoard() {
+    const cols = {
+      todo:        document.getElementById('col-todo'),
+      in_progress: document.getElementById('col-inprogress'),
+      done:        document.getElementById('col-done'),
+    };
+    const counts = { todo: 0, in_progress: 0, done: 0 };
+
+    Object.values(cols).forEach(c => { c.innerHTML = ''; });
+
+    tasks.forEach(task => {
+      counts[task.status] = (counts[task.status] || 0) + 1;
+      cols[task.status]?.appendChild(buildCard(task));
+    });
+
+    document.getElementById('count-todo').textContent       = counts.todo;
+    document.getElementById('count-inprogress').textContent = counts.in_progress;
+    document.getElementById('count-done').textContent       = counts.done;
+
+    // Placeholder colunas vazias
+    ['todo', 'in_progress', 'done'].forEach(s => {
+      if (!counts[s]) {
+        const icons = { todo: '📋', in_progress: '⚙️', done: '🏆' };
+        const msgs  = { todo: 'Nenhuma tarefa pendente', in_progress: 'Nada em andamento', done: 'Nenhuma tarefa concluída' };
+        cols[s].innerHTML = `<div class="empty-col">
+          <div style="font-size:2.5rem">${icons[s]}</div>
+          <p>${msgs[s]}</p>
+        </div>`;
+      }
+    });
+  }
+
+  function buildCard(task) {
+    const labels = { todo: 'A Fazer', in_progress: 'Em Progresso', done: 'Concluído' };
+    const el = document.createElement('div');
+    el.className = `task-card priority-${task.priority}`;
+    el.setAttribute('data-id', task.id);
+
+    const initials = task.assignee
+      ? task.assignee.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()
+      : '';
+
+    const priorityLabels = { high: '🔴 Alta', medium: '🟡 Média', low: '🟢 Baixa' };
+    const statusButtons = ['todo','in_progress','done'].map(s => `
+      <button class="qs-btn ${task.status === s ? 'current' : ''}"
+              onclick="quickStatus(event, ${task.id}, '${s}')"
+              title="Mover para ${labels[s]}">${labels[s]}</button>
+    `).join('');
+
+    el.innerHTML = `
+      <div class="card-priority-bar"></div>
+      <div class="card-content">
+        <div class="card-top">
+          <div class="card-title">${escHtml(task.title)}</div>
+          <div class="card-menu">
+            <button class="card-action-btn edit" title="Editar" onclick="openEdit(event, ${task.id})">✏️</button>
+            <button class="card-action-btn trash" title="Excluir" onclick="openConfirm(event, ${task.id})">🗑️</button>
+          </div>
+        </div>
+        ${task.description ? `<div class="card-desc">${escHtml(task.description.slice(0, 80))}${task.description.length > 80 ? '…' : ''}</div>` : ''}
+        <div class="card-footer">
+          <span class="badge badge-${task.priority}">${priorityLabels[task.priority]}</span>
+          ${task.assignee ? `<span class="card-assignee"><span class="avatar">${initials}</span>${escHtml(task.assignee)}</span>` : ''}
+        </div>
+        <div class="card-quick-status">${statusButtons}</div>
+      </div>
+    `;
+    return el;
+  }
+
+  function escHtml(str) {
+    return String(str)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+
+  // ── Quick Status ───────────────────────────────────────────
+  async function quickStatus(e, id, newStatus) {
+    e.stopPropagation();
+    try {
+      await api('PUT', `/api/tasks/${id}`, { status: newStatus });
+      showToast('Status atualizado!', 'success');
+      loadData();
+    } catch (err) {
+      showToast(err.message, 'error');
+    }
+  }
+
+  // ── Modal ──────────────────────────────────────────────────
+  function openModal(task) {
+    editingId = task ? task.id : null;
+    document.getElementById('modal-title').textContent   = task ? 'Editar Tarefa' : 'Nova Tarefa';
+    document.getElementById('btn-save-label').textContent = task ? 'Salvar Alterações' : 'Criar Tarefa';
+    document.getElementById('f-title').value    = task?.title       || '';
+    document.getElementById('f-desc').value     = task?.description || '';
+    document.getElementById('f-priority').value = task?.priority    || 'medium';
+    document.getElementById('f-status').value   = task?.status      || 'todo';
+    document.getElementById('f-assignee').value = task?.assignee    || '';
+    clearErrors();
+    document.getElementById('modal-overlay').classList.add('open');
+    setTimeout(() => document.getElementById('f-title').focus(), 60);
+  }
+
+  function closeModal() {
+    document.getElementById('modal-overlay').classList.remove('open');
+    editingId = null;
+  }
+
+  function closeModalIfOutside(e) {
+    if (e.target.id === 'modal-overlay') closeModal();
+  }
+
+  function openEdit(e, id) {
+    e.stopPropagation();
+    const task = tasks.find(t => t.id === id);
+    if (task) openModal(task);
+  }
+
+  async function saveTask() {
+    clearErrors();
+    const title    = document.getElementById('f-title').value.trim();
+    const desc     = document.getElementById('f-desc').value.trim();
+    const priority = document.getElementById('f-priority').value;
+    const status   = document.getElementById('f-status').value;
+    const assignee = document.getElementById('f-assignee').value.trim();
+
+    if (!title) {
+      showFieldError('err-title', 'O título é obrigatório');
+      document.getElementById('f-title').focus();
+      return;
+    }
+    if (title.length < 3) {
+      showFieldError('err-title', 'Título deve ter pelo menos 3 caracteres');
+      return;
+    }
+
+    const btn = document.getElementById('btn-save');
+    btn.disabled = true;
+    btn.innerHTML = `<span class="loading-spinner"></span> Salvando…`;
+
+    try {
+      if (editingId) {
+        await api('PUT', `/api/tasks/${editingId}`, { title, description: desc, priority, status, assignee });
+        showToast('Tarefa atualizada!', 'success');
+      } else {
+        await api('POST', '/api/tasks', { title, description: desc, priority, status, assignee });
+        showToast('Tarefa criada!', 'success');
+      }
+      closeModal();
+      loadData();
+    } catch (err) {
+      showFieldError('err-global', err.message);
+    } finally {
+      btn.disabled = false;
+      document.getElementById('btn-save-label').textContent = editingId ? 'Salvar Alterações' : 'Criar Tarefa';
+      btn.innerHTML = `<span id="btn-save-label">${editingId ? 'Salvar Alterações' : 'Criar Tarefa'}</span>`;
+    }
+  }
+
+  function showFieldError(id, msg) {
+    const el = document.getElementById(id);
+    el.textContent = msg;
+    el.classList.add('show');
+  }
+
+  function clearErrors() {
+    document.querySelectorAll('.form-error').forEach(e => {
+      e.classList.remove('show');
+      e.textContent = '';
+    });
+  }
+
+  // ── Confirm Delete ─────────────────────────────────────────
+  function openConfirm(e, id) {
+    e.stopPropagation();
+    deletingId = id;
+    document.getElementById('confirm-overlay').classList.add('open');
+  }
+
+  function closeConfirm() {
+    document.getElementById('confirm-overlay').classList.remove('open');
+    deletingId = null;
+  }
+
+  async function confirmDelete() {
+    if (!deletingId) return;
+    try {
+      await api('DELETE', `/api/tasks/${deletingId}`);
+      showToast('Tarefa excluída', 'success');
+      closeConfirm();
+      loadData();
+    } catch (err) {
+      showToast(err.message, 'error');
+    }
+  }
+
+  // ── Search & Filter ────────────────────────────────────────
+  function onSearch() {
+    clearTimeout(searchTimer);
+    searchTimer = setTimeout(loadTasks, 300);
+  }
+
+  function setFilter(filter, btn) {
+    activeFilter = filter;
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    loadTasks();
+  }
+
+  // ── Toast ──────────────────────────────────────────────────
+  function showToast(msg, type = 'info') {
+    const icons = { success: '✅', error: '❌', info: 'ℹ️' };
+    const el = document.createElement('div');
+    el.className = `toast ${type}`;
+    el.innerHTML = `<span>${icons[type] || ''}</span><span>${msg}</span>`;
+    document.getElementById('toast-container').appendChild(el);
+    setTimeout(() => el.remove(), 3500);
+  }
+
+  // ── Keyboard ───────────────────────────────────────────────
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') {
+      closeModal();
+      closeConfirm();
+    }
+  });
+</script>
+</body>
+</html>
