@@ -42,7 +42,7 @@ jobs:
           pytest tests/ --cov=src --cov-report=xml --quiet
 
       - name: ☁️ Enviar cobertura ao Codecov
-        uses: codecov/codecov-action@v4
+        uses: codecov/codecov-action@v5
         if: always()
         with:
           file: ./coverage.xml
