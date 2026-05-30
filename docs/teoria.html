@@ -1,0 +1,938 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Parte Teórica — TechFlow Task Manager</title>
+  <style>
+    /* ── Geral ─────────────────────────────────────────────── */
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Times New Roman', Times, serif;
+      font-size: 12pt;
+      line-height: 1.8;
+      color: #1a1a1a;
+      background: #fff;
+    }
+    .page { max-width: 800px; margin: 0 auto; padding: 40px 48px; }
+
+    /* ── Tipografia ────────────────────────────────────────── */
+    h1 { font-size: 22pt; text-align: center; font-weight: 700; }
+    h2 { font-size: 14pt; font-weight: 700; margin-top: 32px; margin-bottom: 10px;
+         border-bottom: 2px solid #1a73e8; padding-bottom: 4px; color: #0d47a1; }
+    h3 { font-size: 12pt; font-weight: 700; margin-top: 18px; margin-bottom: 6px; color: #333; }
+    p  { margin-bottom: 12px; text-align: justify; }
+    ul, ol { margin: 8px 0 12px 24px; }
+    li { margin-bottom: 4px; }
+    strong { font-weight: 700; }
+    em { font-style: italic; }
+
+    /* ── Capa ──────────────────────────────────────────────── */
+    .cover {
+      text-align: center;
+      padding: 80px 0 60px;
+      border-bottom: 3px solid #1a73e8;
+      margin-bottom: 40px;
+    }
+    .cover .inst { font-size: 13pt; font-weight: 700; margin-bottom: 8px; }
+    .cover .curso { font-size: 11pt; color: #555; margin-bottom: 40px; }
+    .cover h1 { font-size: 20pt; margin-bottom: 12px; line-height: 1.4; }
+    .cover .subtitle { font-size: 13pt; color: #1a73e8; margin-bottom: 40px; font-style: italic; }
+    .cover .autor { font-size: 12pt; margin-bottom: 6px; }
+    .cover .data  { font-size: 11pt; color: #555; margin-top: 48px; }
+
+    /* ── Seções ────────────────────────────────────────────── */
+    .section { margin-bottom: 32px; }
+
+    /* ── Tabelas ────────────────────────────────────────────── */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 14px 0;
+      font-size: 11pt;
+    }
+    thead tr { background: #1a73e8; color: white; }
+    th { padding: 9px 12px; text-align: left; font-weight: 700; }
+    td { padding: 8px 12px; border-bottom: 1px solid #e0e0e0; }
+    tbody tr:nth-child(even) { background: #f5f7fa; }
+    tbody tr:hover { background: #e8f0fe; }
+
+    /* ── Destaque ───────────────────────────────────────────── */
+    .highlight-box {
+      background: #e8f0fe;
+      border-left: 4px solid #1a73e8;
+      padding: 14px 18px;
+      margin: 16px 0;
+      border-radius: 0 8px 8px 0;
+    }
+    .highlight-box p { margin-bottom: 0; }
+
+    /* ── UML Diagrams ───────────────────────────────────────── */
+    .uml-container {
+      font-family: 'Courier New', monospace;
+      font-size: 10pt;
+      background: #fafafa;
+      border: 1.5px solid #dadce0;
+      border-radius: 8px;
+      padding: 20px 24px;
+      margin: 16px 0;
+      overflow-x: auto;
+    }
+    .uml-title {
+      text-align: center;
+      font-family: 'Times New Roman', serif;
+      font-weight: 700;
+      font-size: 11pt;
+      margin-bottom: 14px;
+      color: #0d47a1;
+    }
+
+    /* ── Use Case Diagram ───────────────────────────────────── */
+    .ucd { display: flex; flex-direction: column; align-items: center; gap: 0; }
+    .ucd-system {
+      border: 2px solid #1a73e8;
+      border-radius: 8px;
+      padding: 16px 32px;
+      position: relative;
+      width: 100%;
+      max-width: 580px;
+    }
+    .ucd-system-label {
+      position: absolute;
+      top: -12px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: white;
+      padding: 0 8px;
+      font-weight: 700;
+      font-size: 10pt;
+      color: #1a73e8;
+    }
+    .ucd-usecases {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: center;
+      padding: 8px 0;
+    }
+    .ucd-uc {
+      border: 1.5px solid #555;
+      border-radius: 50px;
+      padding: 6px 16px;
+      font-size: 9pt;
+      text-align: center;
+      background: white;
+      min-width: 120px;
+    }
+    .ucd-actors {
+      display: flex;
+      justify-content: space-between;
+      width: 100%;
+      max-width: 700px;
+      margin-top: 8px;
+    }
+    .ucd-actor {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      font-size: 9pt;
+    }
+    .actor-figure {
+      font-size: 24pt;
+      line-height: 1;
+    }
+    .actor-lines {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      margin-top: 4px;
+    }
+    .actor-lines span {
+      display: block;
+      width: 50px;
+      height: 1px;
+      background: #555;
+    }
+
+    /* ── Class Diagram ──────────────────────────────────────── */
+    .class-diagram {
+      display: flex;
+      gap: 20px;
+      flex-wrap: wrap;
+      justify-content: center;
+      align-items: flex-start;
+    }
+    .uml-class {
+      border: 2px solid #1a73e8;
+      border-radius: 4px;
+      min-width: 220px;
+      font-size: 9.5pt;
+      font-family: 'Courier New', monospace;
+      background: white;
+    }
+    .uml-class-name {
+      background: #1a73e8;
+      color: white;
+      text-align: center;
+      padding: 6px 12px;
+      font-weight: 700;
+      font-size: 10pt;
+    }
+    .uml-class-section {
+      border-top: 1px solid #1a73e8;
+      padding: 6px 12px;
+    }
+    .uml-class-section div { margin: 2px 0; }
+    .uml-attr { color: #333; }
+    .uml-method { color: #0d47a1; font-style: italic; }
+    .uml-visibility-pub  { color: #2e7d32; }  /* + público */
+    .uml-visibility-priv { color: #c62828; }  /* - privado */
+    .relation-arrow {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18pt;
+      color: #1a73e8;
+      padding: 20px 0;
+    }
+
+    /* ── Code blocks ────────────────────────────────────────── */
+    pre {
+      background: #282c34;
+      color: #abb2bf;
+      border-radius: 6px;
+      padding: 14px 18px;
+      font-size: 9.5pt;
+      overflow-x: auto;
+      margin: 12px 0;
+      font-family: 'Courier New', monospace;
+    }
+    .kw  { color: #c678dd; }
+    .fn  { color: #61afef; }
+    .str { color: #98c379; }
+    .cm  { color: #5c6370; font-style: italic; }
+    .num { color: #d19a66; }
+
+    /* ── Commits list ───────────────────────────────────────── */
+    .commit-list { margin: 12px 0; }
+    .commit-item {
+      display: flex;
+      gap: 12px;
+      padding: 8px 0;
+      border-bottom: 1px solid #f0f0f0;
+      font-size: 10.5pt;
+    }
+    .commit-hash {
+      font-family: 'Courier New', monospace;
+      color: #1a73e8;
+      font-size: 9.5pt;
+      white-space: nowrap;
+    }
+    .commit-msg { flex: 1; }
+    .commit-tag {
+      background: #e8f0fe;
+      color: #1a73e8;
+      border-radius: 12px;
+      padding: 1px 8px;
+      font-size: 8.5pt;
+      white-space: nowrap;
+      align-self: center;
+    }
+
+    /* ── Screenshot placeholder ─────────────────────────────── */
+    .screenshot-placeholder {
+      border: 2px dashed #dadce0;
+      border-radius: 8px;
+      padding: 32px;
+      text-align: center;
+      color: #9aa0a6;
+      margin: 12px 0;
+      background: #fafafa;
+    }
+    .screenshot-placeholder .icon { font-size: 2rem; margin-bottom: 8px; }
+    .screenshot-placeholder p { font-size: 10pt; margin: 0; }
+
+    /* ── Kanban visual (para o documento) ──────────────────── */
+    .kanban-doc {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin: 14px 0;
+    }
+    .kd-col {
+      border: 1.5px solid #dadce0;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    .kd-header {
+      padding: 8px 10px;
+      font-weight: 700;
+      font-size: 9.5pt;
+      color: white;
+    }
+    .kd-todo   .kd-header { background: #757575; }
+    .kd-doing  .kd-header { background: #e65100; }
+    .kd-done   .kd-header { background: #2e7d32; }
+    .kd-body { padding: 8px; }
+    .kd-card {
+      background: white;
+      border: 1px solid #e0e0e0;
+      border-radius: 4px;
+      padding: 6px 8px;
+      margin-bottom: 6px;
+      font-size: 8.5pt;
+    }
+    .kd-card:last-child { margin-bottom: 0; }
+
+    /* ── Questões Norteadoras ───────────────────────────────── */
+    .question-block {
+      background: #fff8e1;
+      border-left: 4px solid #ffa000;
+      padding: 12px 16px;
+      margin: 14px 0;
+      border-radius: 0 6px 6px 0;
+    }
+    .question-block h4 { font-size: 10.5pt; color: #e65100; margin-bottom: 6px; }
+    .question-block p { margin: 0; font-size: 10.5pt; }
+
+    /* ── Referências ────────────────────────────────────────── */
+    .ref-list { font-size: 10.5pt; }
+    .ref-list li { margin-bottom: 8px; }
+
+    /* ── Print Media ────────────────────────────────────────── */
+    @media print {
+      body { font-size: 11pt; }
+      .page { padding: 20px 30px; max-width: 100%; }
+      .section { page-break-inside: avoid; }
+      h2 { page-break-after: avoid; }
+      .cover { padding: 40px 0 30px; }
+    }
+
+    /* ── Print button ───────────────────────────────────────── */
+    .print-bar {
+      position: fixed; top: 0; right: 0; left: 0;
+      background: #1a73e8; color: white;
+      padding: 10px 24px;
+      display: flex; justify-content: space-between; align-items: center;
+      z-index: 999; font-size: 11pt;
+    }
+    .print-bar button {
+      background: white; color: #1a73e8;
+      border: none; border-radius: 20px;
+      padding: 6px 20px; font-weight: 700; cursor: pointer;
+      font-size: 11pt;
+    }
+    .print-bar button:hover { background: #e8f0fe; }
+    body { padding-top: 50px; }
+    @media print { .print-bar { display: none; } body { padding-top: 0; } }
+  </style>
+</head>
+<body>
+
+<div class="print-bar">
+  <span>📄 Parte Teórica — TechFlow Task Manager &nbsp;|&nbsp; Abra no Chrome → Ctrl+P → Salvar como PDF</span>
+  <button onclick="window.print()">🖨️ Salvar como PDF</button>
+</div>
+
+<div class="page">
+
+  <!-- ── CAPA ─────────────────────────────────────────────── -->
+  <div class="cover">
+    <div class="inst">UniFECAF — Centro Universitário</div>
+    <div class="curso">Curso de Tecnologia em Análise e Desenvolvimento de Sistemas</div>
+    <h1>TechFlow Solutions<br>Sistema de Gerenciamento de Tarefas Ágeis</h1>
+    <div class="subtitle">Construindo um Projeto Ágil no GitHub: Da Gestão ao Controle de Qualidade</div>
+    <div class="autor"><strong>Aluno:</strong> Gabriel Telles</div>
+    <div class="autor"><strong>Disciplina:</strong> Engenharia de Software</div>
+    <div class="data">São Paulo · 2026</div>
+  </div>
+
+  <!-- ── 1. DESCRIÇÃO DO PROJETO ──────────────────────────── -->
+  <div class="section">
+    <h2>1. Descrição do Projeto e Escopo Inicial</h2>
+
+    <p>
+      A <strong>TechFlow Solutions</strong>, empresa fictícia especializada em desenvolvimento de software,
+      foi contratada pela startup de logística <em>LogiFlow</em> para desenvolver um sistema de gerenciamento
+      de tarefas baseado em metodologias ágeis. O cliente necessitava de uma solução que permitisse
+      acompanhar o fluxo de trabalho em tempo real, priorizar tarefas críticas e monitorar o desempenho
+      da equipe de entregadores e coordenadores.
+    </p>
+
+    <h3>Escopo Inicial (Sprint 1)</h3>
+    <p>O escopo original previu a entrega de um sistema web com as seguintes funcionalidades:</p>
+    <ul>
+      <li>Cadastro, listagem, edição e exclusão de tarefas (<strong>CRUD completo</strong>)</li>
+      <li>Atributos por tarefa: título, descrição, status (<em>A Fazer / Em Progresso / Concluído</em>) e prioridade (<em>Baixa / Média / Alta</em>)</li>
+      <li>Interface visual em formato Kanban para visualização do fluxo</li>
+      <li>API RESTful para consumo por sistemas externos</li>
+      <li>Pipeline de integração contínua com testes automatizados</li>
+    </ul>
+
+    <h3>Tecnologias Selecionadas</h3>
+    <table>
+      <thead><tr><th>Tecnologia</th><th>Versão</th><th>Função no Projeto</th></tr></thead>
+      <tbody>
+        <tr><td>Python</td><td>3.10+</td><td>Linguagem principal do backend</td></tr>
+        <tr><td>Flask</td><td>3.1</td><td>Framework web e roteamento da API REST</td></tr>
+        <tr><td>Flask-SQLAlchemy</td><td>3.1</td><td>ORM e camada de persistência (SQLite)</td></tr>
+        <tr><td>pytest + pytest-flask</td><td>8.x</td><td>Testes unitários e de integração</td></tr>
+        <tr><td>flake8</td><td>7.x</td><td>Análise estática e qualidade do código</td></tr>
+        <tr><td>GitHub Actions</td><td>—</td><td>Pipeline de Integração Contínua (CI/CD)</td></tr>
+        <tr><td>SQLite</td><td>3.x</td><td>Banco de dados relacional embutido</td></tr>
+        <tr><td>HTML / CSS / JavaScript</td><td>—</td><td>Interface Kanban no frontend</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ── 2. METODOLOGIA ÁGIL ──────────────────────────────── -->
+  <div class="section">
+    <h2>2. Metodologia Ágil Adotada</h2>
+
+    <p>
+      O projeto adota a abordagem <strong>Scrumban</strong> — uma metodologia híbrida que combina
+      a estrutura iterativa do <em>Scrum</em> com a visualização de fluxo contínuo do <em>Kanban</em>.
+      Essa escolha é justificada pela natureza do projeto: pequena equipe, entregas rápidas e
+      necessidade de gestão visual eficiente.
+    </p>
+
+    <h3>Elementos do Scrum aplicados</h3>
+    <ul>
+      <li><strong>Sprint Planning:</strong> tarefas planejadas em iterações semanais (sprints de 7 dias)</li>
+      <li><strong>Product Backlog:</strong> coluna "A Fazer" do Kanban representa o backlog priorizado</li>
+      <li><strong>Sprint Review:</strong> ao fim de cada sprint, avaliação das entregas concluídas</li>
+      <li><strong>Retrospectiva:</strong> ajuste de processo com base nos impedimentos encontrados</li>
+    </ul>
+
+    <h3>Elementos do Kanban aplicados</h3>
+    <ul>
+      <li><strong>Quadro visual:</strong> três colunas — A Fazer, Em Progresso, Concluído</li>
+      <li><strong>WIP Limit (Work In Progress):</strong> máximo de 3 tarefas simultâneas em progresso</li>
+      <li><strong>Fluxo contínuo:</strong> tarefas movidas conforme capacidade disponível, sem necessidade de aguardar o fim do sprint</li>
+      <li><strong>Métricas de fluxo:</strong> taxa de conclusão e contagem por coluna exibidas no dashboard</li>
+    </ul>
+
+    <h3>Vantagens do Scrumban para este projeto</h3>
+    <table>
+      <thead><tr><th>Característica</th><th>Benefício para a LogiFlow</th></tr></thead>
+      <tbody>
+        <tr><td>Sprints curtos (1 semana)</td><td>Feedback rápido do cliente sobre as entregas</td></tr>
+        <tr><td>Kanban Board no GitHub Projects</td><td>Visibilidade total do progresso para gestores</td></tr>
+        <tr><td>WIP Limit</td><td>Reduz multitarefa e melhora foco da equipe</td></tr>
+        <tr><td>CI/CD automatizado</td><td>Entrega contínua com qualidade garantida</td></tr>
+        <tr><td>Issues e Pull Requests</td><td>Comunicação assíncrona rastreável</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ── 3. IMPORTÂNCIA DA MODELAGEM ──────────────────────── -->
+  <div class="section">
+    <h2>3. Importância da Modelagem na Engenharia de Software</h2>
+
+    <p>
+      A modelagem é um dos pilares fundamentais da Engenharia de Software. Antes de escrever
+      qualquer linha de código, a equipe precisa ter uma visão clara do sistema: quem vai usá-lo,
+      quais funcionalidades serão entregues, como os dados serão estruturados e como as partes
+      se relacionam. Segundo Roger Pressman (2021), <em>"um modelo é uma simplificação da realidade
+      que permite ao engenheiro entender o que precisa ser construído antes de construí-lo."</em>
+    </p>
+
+    <div class="highlight-box">
+      <p>
+        <strong>Por que modelar antes de codificar?</strong> Detectar erros de design na fase de
+        modelagem custa até 100x menos do que corrigi-los após a implantação do sistema
+        (Boehm, 1981 — ainda válido na era ágil). Diagramas UML permitem que toda a equipe
+        compartilhe o mesmo entendimento do sistema.
+      </p>
+    </div>
+
+    <p>Neste projeto, a modelagem cumpriu três papéis essenciais:</p>
+    <ol>
+      <li><strong>Comunicação:</strong> os diagramas UML foram usados para alinhar a equipe e o cliente antes do desenvolvimento</li>
+      <li><strong>Planejamento:</strong> o Diagrama de Classes definiu a estrutura do banco antes de qualquer migração</li>
+      <li><strong>Documentação:</strong> os diagramas servem como referência para novos membros da equipe e manutenções futuras</li>
+    </ol>
+  </div>
+
+  <!-- ── 4. DIAGRAMA DE CASOS DE USO ──────────────────────── -->
+  <div class="section">
+    <h2>4. Diagrama de Casos de Uso (UML)</h2>
+
+    <p>
+      O Diagrama de Casos de Uso descreve as interações entre os atores (usuários do sistema)
+      e as funcionalidades disponíveis. No sistema TechFlow, há dois atores principais:
+      o <strong>Usuário</strong> (membro da equipe que gerencia tarefas) e o
+      <strong>Sistema</strong> (executa operações automáticas de validação e persistência).
+    </p>
+
+    <div class="uml-container">
+      <div class="uml-title">Diagrama de Casos de Uso — TechFlow Task Manager</div>
+      <pre style="background:#f8f9fa; color:#202124; border:none; padding:0; font-size:9pt; line-height:1.7;">
+  ┌──────────────────────────────────────────────────────────────┐
+  │               &lt;&lt;Sistema&gt;&gt;  TechFlow Task Manager             │
+  │                                                              │
+  │   ┌──────────────────────────┐                               │
+  │   │  (  Criar Tarefa       ) │◄────────────────────┐         │
+  │   └──────────────────────────┘                     │         │
+  │   ┌──────────────────────────┐                     │         │
+  │   │  (  Listar Tarefas     ) │◄──────────────── [Usuário]    │
+  │   └──────────────────────────┘                     │         │
+  │   ┌──────────────────────────┐                     │         │
+  │   │  (  Editar Tarefa      ) │◄────────────────────┤         │
+  │   └──────────────────────────┘                     │         │
+  │   ┌──────────────────────────┐                     │         │
+  │   │  (  Excluir Tarefa     ) │◄────────────────────┤         │
+  │   └──────────────────────────┘                     │         │
+  │   ┌──────────────────────────┐                     │         │
+  │   │  (  Alterar Status     ) │◄────────────────────┤         │
+  │   └──────────────────────────┘                     │         │
+  │   ┌──────────────────────────┐                     │         │
+  │   │  (  Filtrar Tarefas    ) │◄────────────────────┤         │
+  │   └──────────────────────────┘                     │         │
+  │   ┌──────────────────────────┐                     │         │
+  │   │  (  Ver Dashboard      ) │◄────────────────────┘         │
+  │   └──────────────────────────┘                               │
+  │   ┌──────────────────────────┐                               │
+  │   │  (  Validar Dados      ) │◄─── &lt;&lt;include&gt;&gt; ◄── Criar     │
+  │   └──────────────────────────┘                               │
+  │   ┌──────────────────────────┐                               │
+  │   │  (  Executar Testes CI ) │◄─── [GitHub Actions]          │
+  │   └──────────────────────────┘                               │
+  └──────────────────────────────────────────────────────────────┘
+      </pre>
+    </div>
+
+    <h3>Descrição dos Casos de Uso</h3>
+    <table>
+      <thead><tr><th>Caso de Uso</th><th>Ator</th><th>Descrição</th></tr></thead>
+      <tbody>
+        <tr><td>Criar Tarefa</td><td>Usuário</td><td>Preenche formulário com título, descrição, prioridade e status</td></tr>
+        <tr><td>Listar Tarefas</td><td>Usuário</td><td>Visualiza todas as tarefas organizadas no quadro Kanban</td></tr>
+        <tr><td>Editar Tarefa</td><td>Usuário</td><td>Modifica título, descrição, prioridade, status ou responsável</td></tr>
+        <tr><td>Excluir Tarefa</td><td>Usuário</td><td>Remove permanentemente uma tarefa após confirmação</td></tr>
+        <tr><td>Alterar Status</td><td>Usuário</td><td>Move a tarefa entre as colunas do Kanban com um clique</td></tr>
+        <tr><td>Filtrar Tarefas</td><td>Usuário</td><td>Filtra por prioridade ou busca textual por título</td></tr>
+        <tr><td>Ver Dashboard</td><td>Usuário</td><td>Visualiza métricas: total, por status, alta prioridade e taxa de conclusão</td></tr>
+        <tr><td>Validar Dados</td><td>Sistema</td><td>Verifica campos obrigatórios, tamanhos e valores permitidos (incluso em Criar/Editar)</td></tr>
+        <tr><td>Executar Testes CI</td><td>GitHub Actions</td><td>Roda suite de testes automaticamente em cada push</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ── 5. DIAGRAMA DE CLASSES ────────────────────────────── -->
+  <div class="section">
+    <h2>5. Diagrama de Classes (UML)</h2>
+
+    <p>
+      O Diagrama de Classes representa a estrutura do sistema em termos de classes, atributos,
+      métodos e relacionamentos. A arquitetura adota o padrão <strong>MVC (Model-View-Controller)</strong>,
+      onde o modelo de dados (<code>Task</code>) é separado da lógica de negócio (<code>TaskService</code>)
+      e da interface com o cliente (<code>TaskController</code>).
+    </p>
+
+    <div class="uml-container">
+      <div class="uml-title">Diagrama de Classes — TechFlow Task Manager</div>
+      <div class="class-diagram">
+
+        <!-- Task (Model) -->
+        <div class="uml-class">
+          <div class="uml-class-name">Task</div>
+          <div class="uml-class-section">
+            <div class="uml-attr"><span class="uml-visibility-priv">-</span> id: Integer <em>[PK]</em></div>
+            <div class="uml-attr"><span class="uml-visibility-priv">-</span> title: String(200)</div>
+            <div class="uml-attr"><span class="uml-visibility-priv">-</span> description: Text</div>
+            <div class="uml-attr"><span class="uml-visibility-priv">-</span> status: String(20)</div>
+            <div class="uml-attr"><span class="uml-visibility-priv">-</span> priority: String(10)</div>
+            <div class="uml-attr"><span class="uml-visibility-priv">-</span> assignee: String(100)</div>
+            <div class="uml-attr"><span class="uml-visibility-priv">-</span> created_at: DateTime</div>
+            <div class="uml-attr"><span class="uml-visibility-priv">-</span> updated_at: DateTime</div>
+          </div>
+          <div class="uml-class-section">
+            <div class="uml-method"><span class="uml-visibility-pub">+</span> to_dict(): dict</div>
+            <div class="uml-method"><span class="uml-visibility-pub">+</span> __repr__(): str</div>
+          </div>
+          <div class="uml-class-section" style="font-size:8.5pt;color:#555">
+            VALID_STATUSES: ['todo','in_progress','done']<br>
+            VALID_PRIORITIES: ['low','medium','high']
+          </div>
+        </div>
+
+        <!-- TaskController -->
+        <div class="uml-class">
+          <div class="uml-class-name">TaskController</div>
+          <div class="uml-class-section">
+            <div class="uml-attr"><span class="uml-visibility-priv">-</span> blueprint: Blueprint</div>
+            <div class="uml-attr"><span class="uml-visibility-priv">-</span> db: SQLAlchemy</div>
+          </div>
+          <div class="uml-class-section">
+            <div class="uml-method"><span class="uml-visibility-pub">+</span> get_tasks(): Response</div>
+            <div class="uml-method"><span class="uml-visibility-pub">+</span> create_task(): Response</div>
+            <div class="uml-method"><span class="uml-visibility-pub">+</span> get_task(id): Response</div>
+            <div class="uml-method"><span class="uml-visibility-pub">+</span> update_task(id): Response</div>
+            <div class="uml-method"><span class="uml-visibility-pub">+</span> delete_task(id): Response</div>
+            <div class="uml-method"><span class="uml-visibility-pub">+</span> get_stats(): Response</div>
+          </div>
+        </div>
+
+        <!-- Database -->
+        <div class="uml-class">
+          <div class="uml-class-name">Database</div>
+          <div class="uml-class-section">
+            <div class="uml-attr"><span class="uml-visibility-priv">-</span> uri: String</div>
+            <div class="uml-attr"><span class="uml-visibility-priv">-</span> engine: Engine</div>
+            <div class="uml-attr"><span class="uml-visibility-priv">-</span> session: Session</div>
+          </div>
+          <div class="uml-class-section">
+            <div class="uml-method"><span class="uml-visibility-pub">+</span> create_all(): void</div>
+            <div class="uml-method"><span class="uml-visibility-pub">+</span> get_or_404(id): Task</div>
+            <div class="uml-method"><span class="uml-visibility-pub">+</span> session.add(obj): void</div>
+            <div class="uml-method"><span class="uml-visibility-pub">+</span> session.commit(): void</div>
+            <div class="uml-method"><span class="uml-visibility-pub">+</span> session.delete(obj): void</div>
+          </div>
+        </div>
+
+      </div>
+
+      <br>
+      <div style="font-size:9pt; text-align:center; color:#555; margin-top:8px">
+        TaskController <strong>usa</strong> Task &nbsp;|&nbsp;
+        TaskController <strong>usa</strong> Database &nbsp;|&nbsp;
+        Database <strong>persiste</strong> Task &nbsp;|&nbsp;
+        Task <strong>herda</strong> db.Model (SQLAlchemy)
+      </div>
+    </div>
+
+    <h3>Relacionamentos</h3>
+    <ul>
+      <li><strong>TaskController → Task:</strong> dependência de uso — o controller instancia e manipula objetos Task</li>
+      <li><strong>TaskController → Database:</strong> dependência — o controller usa a sessão do banco para executar queries</li>
+      <li><strong>Task → db.Model:</strong> herança — Task estende o modelo base do SQLAlchemy para mapeamento ORM</li>
+      <li><strong>Database → Task:</strong> associação — o banco persiste e recupera instâncias de Task</li>
+    </ul>
+  </div>
+
+  <!-- ── 6. MUDANÇA DE ESCOPO ─────────────────────────────── -->
+  <div class="section">
+    <h2>6. Gestão de Mudanças — Alteração de Escopo</h2>
+
+    <h3>Contexto da Mudança</h3>
+    <p>
+      Ao final do Sprint 1, durante a Sprint Review com o cliente LogiFlow, o gerente de operações
+      levantou uma necessidade não prevista no escopo original: <strong>visibilidade gerencial
+      consolidada</strong>. Sem métricas agregadas, os gestores precisavam contar manualmente as
+      tarefas em cada coluna para entender o estado da equipe — processo demorado e propenso a erros.
+    </p>
+
+    <h3>Mudança Implementada (Sprint 2)</h3>
+    <div class="highlight-box">
+      <p>
+        <strong>Feature: Dashboard de Estatísticas em Tempo Real</strong><br>
+        Adição de um painel superior com cards de métricas consolidadas:
+        total de tarefas, tarefas a fazer, em progresso, concluídas,
+        alta prioridade e taxa de conclusão (%).
+      </p>
+    </div>
+
+    <h3>Justificativa Técnica</h3>
+    <p>
+      A mudança foi aceita por três razões: (1) estava alinhada aos princípios do Kanban —
+      métricas de fluxo são essenciais para a melhoria contínua; (2) o custo de implementação
+      era baixo (novo endpoint na API + 5 cards no frontend); (3) o campo <code>assignee</code>
+      (responsável) foi adicionado ao modelo aproveitando a mesma sprint, permitindo rastreabilidade
+      por membro da equipe.
+    </p>
+
+    <h3>Impacto no Kanban (cards adicionados)</h3>
+    <div class="kanban-doc">
+      <div class="kd-col kd-todo">
+        <div class="kd-header">✅ Já Concluído (Sprint 1)</div>
+        <div class="kd-body">
+          <div class="kd-card">CRUD de tarefas</div>
+          <div class="kd-card">Interface Kanban</div>
+          <div class="kd-card">API REST /tasks</div>
+          <div class="kd-card">Filtros por status</div>
+          <div class="kd-card">Testes automatizados</div>
+          <div class="kd-card">GitHub Actions CI</div>
+        </div>
+      </div>
+      <div class="kd-col kd-doing">
+        <div class="kd-header">⚡ Em Progresso (Sprint 2)</div>
+        <div class="kd-body">
+          <div class="kd-card">Campo assignee</div>
+          <div class="kd-card">Endpoint /api/stats</div>
+        </div>
+      </div>
+      <div class="kd-col kd-done">
+        <div class="kd-header">📋 A Fazer (Sprint 3)</div>
+        <div class="kd-body">
+          <div class="kd-card">Filtro por responsável</div>
+          <div class="kd-card">Exportar tarefas CSV</div>
+          <div class="kd-card">Autenticação JWT</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── 7. TESTES AUTOMATIZADOS ──────────────────────────── -->
+  <div class="section">
+    <h2>7. Testes Automatizados</h2>
+
+    <p>
+      O projeto utiliza <strong>pytest</strong> com <strong>pytest-flask</strong> para testes
+      unitários e de integração. A suite possui <strong>34 casos de teste</strong>, cobrindo
+      100% das rotas da API e as principais regras de negócio do sistema.
+    </p>
+
+    <h3>Estrutura da Suite de Testes</h3>
+    <table>
+      <thead><tr><th>Classe de Teste</th><th>Qtd.</th><th>O que verifica</th></tr></thead>
+      <tbody>
+        <tr><td>TestTaskModel</td><td>4</td><td>Persistência, valores padrão, serialização e representação do modelo</td></tr>
+        <tr><td>TestCriarTarefa</td><td>9</td><td>Criação válida, validações de campo e retornos HTTP 201/400</td></tr>
+        <tr><td>TestListarTarefas</td><td>7</td><td>Listagem, busca por ID, filtros por status/prioridade e busca textual</td></tr>
+        <tr><td>TestAtualizarTarefa</td><td>6</td><td>Atualização parcial e completa, validações e HTTP 404/400</td></tr>
+        <tr><td>TestExcluirTarefa</td><td>3</td><td>Exclusão, verificação de remoção e HTTP 404 pós-exclusão</td></tr>
+        <tr><td>TestEstatisticas</td><td>3</td><td>Contagem por status, prioridade e cálculo da taxa de conclusão</td></tr>
+        <tr><td>TestFrontend</td><td>2</td><td>Carregamento da página HTML (HTTP 200 e presença do título)</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Exemplo de teste automatizado</h3>
+    <pre><span class="kw">def</span> <span class="fn">test_criar_tarefa_valida</span>(self, client):
+    <span class="str">"""Deve criar tarefa e retornar 201 com os dados corretos."""</span>
+    resp = post_task(client, <span class="str">'Implementar login'</span>,
+                     description=<span class="str">'Usar JWT'</span>, priority=<span class="str">'high'</span>)
+    <span class="kw">assert</span> resp.status_code == <span class="num">201</span>
+    data = get_json(resp)
+    <span class="kw">assert</span> data[<span class="str">'title'</span>] == <span class="str">'Implementar login'</span>
+    <span class="kw">assert</span> data[<span class="str">'priority'</span>] == <span class="str">'high'</span>
+    <span class="kw">assert</span> data[<span class="str">'id'</span>] <span class="kw">is not</span> <span class="num">None</span></pre>
+
+    <h3>Importância dos testes automatizados</h3>
+    <p>
+      Cada commit que chega ao repositório aciona automaticamente o GitHub Actions, que executa
+      a suite completa. Isso garante que novas funcionalidades não quebram comportamentos
+      existentes (<em>regressão</em>) — princípio central da <strong>Integração Contínua</strong>.
+      Além disso, a análise estática com <code>flake8</code> verifica conformidade com o PEP 8
+      (padrão de estilo Python), mantendo a legibilidade do código ao longo do tempo.
+    </p>
+  </div>
+
+  <!-- ── 8. HISTÓRICO DE COMMITS ──────────────────────────── -->
+  <div class="section">
+    <h2>8. Histórico de Commits Semânticos</h2>
+
+    <p>
+      Todos os commits seguem a convenção <strong>Conventional Commits</strong>, que categoriza
+      as alterações com prefixos semânticos: <code>feat:</code> (nova funcionalidade),
+      <code>fix:</code> (correção), <code>test:</code> (testes), <code>docs:</code> (documentação)
+      e <code>ci:</code> (integração contínua). Esse padrão facilita a geração de changelogs
+      automáticos e a navegação pelo histórico.
+    </p>
+
+    <div class="commit-list">
+      <div class="commit-item">
+        <span class="commit-hash">a1b2c3d</span>
+        <span class="commit-msg">feat: inicializa projeto Flask com estrutura MVC e modelo Task</span>
+        <span class="commit-tag">feat</span>
+      </div>
+      <div class="commit-item">
+        <span class="commit-hash">e4f5g6h</span>
+        <span class="commit-msg">feat: implementa endpoints CRUD completo para tarefas (GET/POST/PUT/DELETE)</span>
+        <span class="commit-tag">feat</span>
+      </div>
+      <div class="commit-item">
+        <span class="commit-hash">i7j8k9l</span>
+        <span class="commit-msg">feat: adiciona interface Kanban com HTML/CSS/JS e filtros por prioridade</span>
+        <span class="commit-tag">feat</span>
+      </div>
+      <div class="commit-item">
+        <span class="commit-hash">m1n2o3p</span>
+        <span class="commit-msg">test: cria suite de 34 testes automatizados com pytest-flask</span>
+        <span class="commit-tag">test</span>
+      </div>
+      <div class="commit-item">
+        <span class="commit-hash">q4r5s6t</span>
+        <span class="commit-msg">ci: configura pipeline GitHub Actions com pytest e flake8</span>
+        <span class="commit-tag">ci</span>
+      </div>
+      <div class="commit-item">
+        <span class="commit-hash">u7v8w9x</span>
+        <span class="commit-msg">docs: adiciona README.md com instruções de uso e documentação da API</span>
+        <span class="commit-tag">docs</span>
+      </div>
+      <div class="commit-item">
+        <span class="commit-hash">y1z2a3b</span>
+        <span class="commit-msg">feat: mudança de escopo — adiciona campo assignee e endpoint GET /api/stats</span>
+        <span class="commit-tag">feat</span>
+      </div>
+      <div class="commit-item">
+        <span class="commit-hash">c4d5e6f</span>
+        <span class="commit-msg">feat: implementa dashboard de estatísticas em tempo real no frontend</span>
+        <span class="commit-tag">feat</span>
+      </div>
+      <div class="commit-item">
+        <span class="commit-hash">g7h8i9j</span>
+        <span class="commit-msg">test: atualiza suite de testes para cobrir endpoint de estatísticas</span>
+        <span class="commit-tag">test</span>
+      </div>
+      <div class="commit-item">
+        <span class="commit-hash">k1l2m3n</span>
+        <span class="commit-msg">fix: corrige validação de títulos nos testes e ajusta query de contagem</span>
+        <span class="commit-tag">fix</span>
+      </div>
+    </div>
+
+    <p style="margin-top:14px">
+      <em>Nota: os hashes acima são representativos. Os hashes reais serão gerados pelo GitHub ao realizar os commits no repositório.</em>
+    </p>
+  </div>
+
+  <!-- ── 9. QUESTÕES NORTEADORAS ──────────────────────────── -->
+  <div class="section">
+    <h2>9. Questões Norteadoras</h2>
+
+    <div class="question-block">
+      <h4>Quais são as principais causas de falhas em projetos ágeis e como o GitHub pode ajudar a mitigá-las?</h4>
+      <p>
+        As principais causas são: falta de visibilidade do progresso, comunicação deficiente entre equipe e cliente,
+        ausência de controle de qualidade e má priorização de tarefas. O GitHub mitiga esses riscos através do
+        <strong>Projects (Kanban)</strong> para visibilidade do fluxo, <strong>Issues</strong> para rastreamento,
+        <strong>Pull Requests</strong> para revisão de código, <strong>Actions</strong> para CI/CD que previne
+        regressões, e <strong>Milestones</strong> para controle de sprints.
+      </p>
+    </div>
+
+    <div class="question-block">
+      <h4>Quem são os principais beneficiados por um sistema de gerenciamento ágil?</h4>
+      <p>
+        (1) <strong>Gestores de projeto</strong>: visibilidade em tempo real do progresso sem reuniões de status desnecessárias.
+        (2) <strong>Desenvolvedores</strong>: clareza sobre o que priorizar, sem ambiguidade nas tarefas.
+        (3) <strong>Cliente (LogiFlow)</strong>: previsibilidade de entrega e rastreabilidade de funcionalidades contratadas.
+        (4) <strong>Novos membros da equipe</strong>: onboarding facilitado pelo histórico de commits e documentação no README.
+      </p>
+    </div>
+
+    <div class="question-block">
+      <h4>Como o GitHub Actions garante a entrega de software confiável?</h4>
+      <p>
+        Cada <code>git push</code> aciona automaticamente o pipeline: instala dependências, executa o <em>linter</em>
+        (<code>flake8</code>) para garantir qualidade estática do código, e roda os 34 testes automatizados.
+        Se qualquer etapa falhar, o desenvolvedor é imediatamente notificado e o merge é bloqueado —
+        impedindo que código com bugs chegue à branch principal. Isso implementa o princípio
+        <em>"fail fast"</em> da Integração Contínua.
+      </p>
+    </div>
+
+    <div class="question-block">
+      <h4>Quais são os principais desafios ao implementar mudanças em projeto ágil?</h4>
+      <p>
+        (1) <strong>Escopo reptante (scope creep)</strong>: mudanças pequenas que acumulam e desviam o projeto do objetivo.
+        Mitigado com critérios claros de aceitação por sprint.
+        (2) <strong>Dívida técnica</strong>: pressão por entrega rápida que leva a atalhos que degradam o código.
+        Mitigado com code review em Pull Requests e análise estática automatizada.
+        (3) <strong>Resistência à mudança</strong>: stakeholders relutantes em aceitar novas prioridades.
+        Mitigado com transparência total no Kanban e métricas do dashboard.
+      </p>
+    </div>
+
+    <div class="question-block">
+      <h4>Como as metodologias ágeis estudadas foram aplicadas diretamente neste projeto?</h4>
+      <p>
+        <strong>Scrum:</strong> sprints semanais estruturaram as entregas em iterações mensuráveis.
+        <strong>Kanban:</strong> o quadro visual no GitHub Projects permitiu identificar gargalos (coluna "Em Progresso" cheia = WIP limit atingido).
+        <strong>CI/CD:</strong> o pipeline automatizado implementa o princípio ágil de "entrega contínua de software funcionando".
+        <strong>Retrospectiva:</strong> a mudança de escopo no Sprint 2 (dashboard de estatísticas) surgiu de uma retrospectiva com o cliente — demonstrando o ciclo ágil de feedback e adaptação.
+      </p>
+    </div>
+  </div>
+
+  <!-- ── 10. CAPTURAS DE TELA ──────────────────────────────── -->
+  <div class="section">
+    <h2>10. Prints do GitHub (a preencher)</h2>
+
+    <p>
+      Após criar o repositório no GitHub e realizar os commits, insira os prints abaixo.
+      Use <strong>Ctrl+Print Screen</strong> ou a ferramenta de captura do Windows.
+    </p>
+
+    <h3>Quadro Kanban (GitHub Projects)</h3>
+    <div class="screenshot-placeholder">
+      <div class="icon">📋</div>
+      <p><strong>Print do GitHub Projects com o quadro Kanban</strong><br>
+      Acesse: github.com/seu-usuario/repo → Projects → Kanban board<br>
+      Mostre pelo menos 10 cards distribuídos entre as 3 colunas</p>
+    </div>
+
+    <h3>Commits Relevantes</h3>
+    <div class="screenshot-placeholder">
+      <div class="icon">📝</div>
+      <p><strong>Print da aba "Commits" do repositório</strong><br>
+      Acesse: github.com/seu-usuario/repo → Commits (branch main)<br>
+      Mostre pelo menos os 10 commits semânticos realizados</p>
+    </div>
+
+    <h3>GitHub Actions — CI em funcionamento</h3>
+    <div class="screenshot-placeholder">
+      <div class="icon">✅</div>
+      <p><strong>Print do GitHub Actions mostrando workflow verde (passed)</strong><br>
+      Acesse: github.com/seu-usuario/repo → Actions → CI — TechFlow Task Manager<br>
+      Mostre os 3 steps passando: checkout, install, flake8, pytest</p>
+    </div>
+
+    <h3>Sistema Funcionando no Navegador</h3>
+    <div class="screenshot-placeholder">
+      <div class="icon">🌐</div>
+      <p><strong>Print do sistema rodando em http://localhost:5000</strong><br>
+      Execute: <code>python run.py</code> e acesse no Chrome<br>
+      Mostre o dashboard com tarefas criadas em cada coluna do Kanban</p>
+    </div>
+
+    <h3>Resultado dos Testes (Terminal)</h3>
+    <div class="screenshot-placeholder">
+      <div class="icon">🧪</div>
+      <p><strong>Print do terminal mostrando "34 passed"</strong><br>
+      Execute: <code>pytest tests/ -v</code><br>
+      Mostre todos os testes em verde (PASSED)</p>
+    </div>
+  </div>
+
+  <!-- ── 11. REFERÊNCIAS ───────────────────────────────────── -->
+  <div class="section">
+    <h2>11. Referências Bibliográficas</h2>
+
+    <ol class="ref-list">
+      <li>
+        PRESSMAN, Roger S.; MAXIM, Bruce R. <strong>Engenharia de Software: Uma Abordagem Profissional</strong>.
+        9. ed. Porto Alegre: AMGH Editora, 2021.
+      </li>
+      <li>
+        SCHWABER, Ken; SUTHERLAND, Jeff. <strong>The Scrum Guide</strong>. Scrum.org, 2020.
+        Disponível em: &lt;https://scrumguides.org&gt;.
+      </li>
+      <li>
+        ANDERSON, David J. <strong>Kanban: Successful Evolutionary Change for Your Technology Business</strong>.
+        Blue Hole Press, 2010.
+      </li>
+      <li>
+        GITHUB. <strong>GitHub Actions Documentation</strong>. 2024.
+        Disponível em: &lt;https://docs.github.com/en/actions&gt;.
+      </li>
+      <li>
+        PALLETS PROJECTS. <strong>Flask Documentation — Version 3.1</strong>. 2024.
+        Disponível em: &lt;https://flask.palletsprojects.com&gt;.
+      </li>
+      <li>
+        BOEHM, Barry W. <strong>Software Engineering Economics</strong>. Prentice Hall, 1981.
+      </li>
+      <li>
+        ATLASSIAN. <em>Como usar o Kanban no GitHub para melhorar a produtividade.</em>
+        Atlassian Blog, 2023. Disponível em: &lt;https://www.atlassian.com/agile/kanban&gt;.
+      </li>
+    </ol>
+  </div>
+
+</div><!-- .page -->
+</body>
+</html>
